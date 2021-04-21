@@ -67,27 +67,38 @@ public class MultiServer {
 		ms.init();
 	}
 	//접속된 모든 클라이언트측으로 서버의 메세지를 Echo 해주는 역할 담당
-	public void sendAllMsg(String name, String msg) {
+	public void sendAllMsg(String sendname, String name, String msg, String flag) {
 		//Map에 저장도니 객체의 키값(대화명)을 먼저 얻어온다.
 		Iterator<String> it = clientMap.keySet().iterator();
 		
 		//저장된 객체(클라이언트)의 갯수만큼 반복한다.
 		while(it.hasNext()) {
 			try {
+				String clientName = it.next();
 				//각 클라이언트의 PrintWriter객체를 얻어온다.
 				PrintWriter it_out =(PrintWriter)
-						clientMap.get(it.next());
-				/*
-				클라이언트에게 메세지를 전달할때 매개변수로 name이
-				있는 경우와 없는 경우를 구분해서 전달하게 된다.
-				 */
-				if(name.equals("")) {
-					//입장,퇴장에서 사용되는 부분
-					it_out.println(msg);
+						clientMap.get(clientName);
+				if(flag.equals("One")) {
+					//flag가 One이면 해당 클라이언트 한명에게만 전송한다.(귓속말)
+					if(name.equals(clientName)) {
+						//컬렉션에 저장된 접속자명과 일치하는 경우에만 메세지를 전송한다.
+						it_out.println("[귓속말]"+sendname+":"+msg);
+					}
 				}
 				else {
-					//메세지를 보낼때 사용되는 부분
-					it_out.println("["+name+"]"+msg);
+					/*
+					클라이언트에게 메세지를 전달할때 매개변수로 name이
+					있는 경우와 없는 경우를 구분해서 전달하게 된다.
+					 */
+					//그 외에는 모든 클라이언트에게 전송한다.
+					if(name.equals("")) {
+						//입장,퇴장에서 사용되는 부분
+						it_out.println(msg);
+					} 
+					else {
+						//메세지를 보낼때 사용되는 부분
+						it_out.println("["+name+"]"+msg);
+					}
 				}
 			} catch (Exception e) {
 				System.out.println("예외:"+e);
@@ -134,7 +145,7 @@ public class MultiServer {
 					// 클라이언트의 이름을 읽어온다.
 					name = in.readLine();
 					
-					sendAllMsg("",name+"님이 입장");
+					sendAllMsg("","",name+"님이 입장","All");
 					//방금 접속한 클라이언트를 제외한 나머지에게 입장을 알린다.ㅣ
 					//현재 접속한 클라이언트를 HashMap에 저장한다.
 					clientMap.put(name, out);
@@ -151,10 +162,24 @@ public class MultiServer {
 						}
 						//서버의 콘솔에 출력되고
 						System.out.println(name+">>"+s);
+						
+						
 						//클라이언트 측으로 전송한다.
-						sendAllMsg(name, s);
+						
+						if(s.charAt(0)=='/') {
+							String[] strArr = s.split(" ");
+							String msgContent ="";
+							for(int i=2 ; i<strArr.length;i++) {
+								msgContent += strArr[i]+" ";
+							}
+							if(strArr[0].equals("/to")) {
+								sendAllMsg(name,strArr[1], msgContent, "One");
+							}
+						}
+						else {
+							sendAllMsg("",name, s,"All");
+						}
 					}
-					
 //				}
 				
 			} 
@@ -168,7 +193,7 @@ public class MultiServer {
 				삭제한다.
 				 */
 				clientMap.remove(name);
-				sendAllMsg("",name+"님이 퇴장하심");
+				sendAllMsg("","",name+"님이 퇴장하심","All");
 				System.out.println(name+"["+Thread.currentThread().getName()
 						+"] 퇴장");
 				System.out.println("현재 접속자수"+clientMap.size()+"명");
