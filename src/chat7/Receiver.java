@@ -30,7 +30,7 @@ public class Receiver extends Thread{
 	public void run() {
 		while(in != null) {
 			try {
-				//스트림을 통해 서버가 보낸 내용을 지속적으로 읽어온다.
+
 				System.out.println("Thread Receive : "+ in.readLine());
 			}
 			catch (SocketException ne) {
