@@ -13,7 +13,7 @@ public class Receiver extends Thread{
 	//클라이언트가 접속시 생성한 Socket객체를 생성자에서 매개변수로 받음
 	public Receiver(Socket socket) {
 		this.socket = socket;
-		
+		//머고오~~
 		//Socket객체를 기반으로 입력스트림을 생성한다.
 		try {
 			in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));

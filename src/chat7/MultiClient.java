@@ -10,7 +10,7 @@ public class MultiClient {
 		Scanner scan = new Scanner(System.in);
 		System.out.print("이름을 입력하세요:");
 		String s_name = scan.nextLine();
-		
+		//머고~~
 		/*
 		메세지 송수진을 위한 클래스를 별도로 만들었으므로
 		Client클래스에서는 Socket 객체만 생성한다.
