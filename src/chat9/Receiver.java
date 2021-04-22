@@ -1,9 +1,10 @@
-package chat8;
+package chat9;
  
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URLDecoder;
 
 public class Receiver extends Thread{
 	
@@ -13,7 +14,7 @@ public class Receiver extends Thread{
 		this.socket = socket;
 		
 		try {
-			in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+			in = new BufferedReader(new InputStreamReader(this.socket.getInputStream(),"UTF-8"));
 			
 		} catch (Exception e) {
 			System.out.println("예외1:"+e);
@@ -27,7 +28,7 @@ public class Receiver extends Thread{
 				if(a==null) {
 					break;
 				}
-				System.out.println("Thread Receive : "+ a);
+				System.out.println("Thread Receive : "+ URLDecoder.decode(a,"UTF-8"));
 			}
 			catch (SocketException ne) {
 				System.out.println("SocketException 발생됨. 루프탈출");

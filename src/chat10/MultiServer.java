@@ -1,4 +1,4 @@
-package chat8;
+package chat10;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -6,19 +6,34 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
+
+import chat11.jdbc.IConnectImpl;
 
 public class MultiServer {
 	static ServerSocket serverSocket = null;
 	static Socket socket = null;
 	
 	Map<String, PrintWriter> clientMap;
+	Set<String> black;
+	Set<String> pWord;
 	
 	public MultiServer() {
 		clientMap = new HashMap<String, PrintWriter>();
+		black = new HashSet<String>();
+		black.add("kosmo");
+		pWord = new HashSet<String>();
+		pWord.add("개새끼");
+		pWord.add("개새꺄");
+		pWord.add("병신");
+		pWord.add("꺼져");
 		Collections.synchronizedMap(clientMap);
 	} 
 	public void init() {
@@ -51,7 +66,8 @@ public class MultiServer {
 	}
 	public void sendAllMsg(String sendName, String name, String msg, String flag) {
 		Iterator<String> it = clientMap.keySet().iterator();
-		
+		System.out.println(sendName);
+
 		while(it.hasNext()) {
 			try {
 				String clientName = it.next();
@@ -64,10 +80,10 @@ public class MultiServer {
 				}
 				else {
 					if(name.equals("")) {
-						it_out.println(msg);
+						it_out.println(URLEncoder.encode(msg,"UTF-8"));
 					} 
 					else {
-						it_out.println("["+name+"]"+msg);
+						it_out.println("["+name+"]"+URLEncoder.encode(msg,"UTF-8"));
 					}
 				}
 			} catch (Exception e) {
@@ -84,7 +100,8 @@ public class MultiServer {
 			this.socket=socket;
 			try {
 				out = new PrintWriter(this.socket.getOutputStream(),true);
-				in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+				in = new BufferedReader(new InputStreamReader(this.socket.getInputStream(),"UTF-8"));
+				
 			} 
 			catch (Exception e) {
 				System.out.println("예외:"+e);
@@ -98,6 +115,18 @@ public class MultiServer {
 			
 			try {
 				name = in.readLine();
+				name = URLDecoder.decode(name,"UTF-8");
+				
+				Iterator<String> it2 = black.iterator();
+				while(it2.hasNext()) {
+					String name2 = it2.next();
+					if(name2.equals(name)) {
+						out.println("당신은 블랙리스트");
+						name=name+"temp";
+						this.interrupt();
+						return;
+					}
+				}
 				Iterator<String> it = clientMap.keySet().iterator();
 				while(it.hasNext()) {
 					String name2 = it.next();
@@ -107,6 +136,11 @@ public class MultiServer {
 						return;
 					}
 				}
+				if(clientMap.size()>2) {
+					out.println("접속자수초과");
+					this.interrupt();
+					return;
+				}
 				sendAllMsg("","",name+"님이 입장","All");
 				clientMap.put(name, out);
 				System.out.println(name+" 접속");
@@ -114,6 +148,7 @@ public class MultiServer {
 				while(in!=null) {
 					
 					s = in.readLine();
+					s = URLDecoder.decode(s,"UTF-8");
 					if(s==null) {
 						break;
 					}
@@ -122,6 +157,11 @@ public class MultiServer {
 						String[] strArr = s.split(" ");
 						String msgContent ="";
 						for(int i=2 ; i<strArr.length;i++) {
+							for(String a : pWord) {
+								if(strArr[i].equals(a)) {
+									strArr[i]="나쁜말";
+								}
+							}
 							msgContent += strArr[i]+" ";
 						}
 						if(strArr[0].equals("/to")) {
@@ -129,7 +169,17 @@ public class MultiServer {
 						}
 					}
 					else {
-						sendAllMsg("",name, s,"All");
+						String[] strArr = s.split(" ");
+						String msgContent ="";
+						for(int i=0 ; i<strArr.length;i++) {
+							for(String a : pWord) {
+								if(strArr[i].equals(a)) {
+									strArr[i]="나쁜말";
+								}
+							}
+							msgContent += strArr[i]+" ";
+						}
+						sendAllMsg("",name, msgContent, "All");
 					}
 				}
 				

@@ -1,4 +1,4 @@
-package chat8;
+package chat9;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -6,6 +6,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -64,10 +66,10 @@ public class MultiServer {
 				}
 				else {
 					if(name.equals("")) {
-						it_out.println(msg);
+						it_out.println(URLEncoder.encode(msg,"UTF-8"));
 					} 
 					else {
-						it_out.println("["+name+"]"+msg);
+						it_out.println("["+name+"]"+URLEncoder.encode(msg,"UTF-8"));
 					}
 				}
 			} catch (Exception e) {
@@ -84,7 +86,8 @@ public class MultiServer {
 			this.socket=socket;
 			try {
 				out = new PrintWriter(this.socket.getOutputStream(),true);
-				in = new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
+				in = new BufferedReader(new InputStreamReader(this.socket.getInputStream(),"UTF-8"));
+				
 			} 
 			catch (Exception e) {
 				System.out.println("예외:"+e);
@@ -98,6 +101,7 @@ public class MultiServer {
 			
 			try {
 				name = in.readLine();
+				name = URLDecoder.decode(name,"UTF-8");
 				Iterator<String> it = clientMap.keySet().iterator();
 				while(it.hasNext()) {
 					String name2 = it.next();
@@ -114,6 +118,7 @@ public class MultiServer {
 				while(in!=null) {
 					
 					s = in.readLine();
+					s = URLDecoder.decode(s,"UTF-8");
 					if(s==null) {
 						break;
 					}
