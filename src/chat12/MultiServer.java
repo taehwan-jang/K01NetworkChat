@@ -1,4 +1,4 @@
-package chat11;
+package chat12;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,6 +24,10 @@ public class MultiServer extends IConnectImpl {
 	Map<String, PrintWriter> clientMap;
 	Set<String> black;
 	Set<String> pWord;
+	String fixName ="";
+	String toName ="";
+	String blockName ="";
+	String btoName ="";
 	
 	public MultiServer() {
 		super("kosmo","1234");
@@ -85,28 +89,31 @@ public class MultiServer extends IConnectImpl {
 				String clientName = it.next();
 				PrintWriter it_out =(PrintWriter)
 						clientMap.get(clientName);
-				if(flag.equals("One")) {
-					if(name.equals(clientName)) {
-						it_out.println("[귓속말]"+sendName+":"+msg);
-						try {
-							String query = "INSERT INTO chat_talking VALUES(SEQ_TALKING.nextval,?,?,?,SYSDATE)";
-							psmt = con.prepareStatement(query);
-							psmt.setString(1, sendName);
-							psmt.setString(2, name);
-							psmt.setString(3, URLDecoder.decode(msg,"UTF-8"));
-							
-							psmt.executeUpdate();
-						} catch (Exception e) {
-							e.printStackTrace();
+				if(!(blockName.equals(name)&&btoName.equals(clientName)||
+						blockName.equals(clientName)&&btoName.equals(name))) {
+					if(flag.equals("One")) {
+						if(name.equals(clientName)) {
+							it_out.println("[귓속말]"+sendName+":"+msg);
+							try {
+								String query = "INSERT INTO chat_talking VALUES(SEQ_TALKING.nextval,?,?,?,SYSDATE)";
+								psmt = con.prepareStatement(query);
+								psmt.setString(1, sendName);
+								psmt.setString(2, name);
+								psmt.setString(3, URLDecoder.decode(msg,"UTF-8"));
+								
+								psmt.executeUpdate();
+							} catch (Exception e) {
+								e.printStackTrace();
+							}
 						}
 					}
-				}
-				else {
-					if(name.equals("")) {
-						it_out.println(URLEncoder.encode(msg,"UTF-8"));
-					} 
 					else {
-						it_out.println("["+name+"]"+URLEncoder.encode(msg,"UTF-8"));
+						if(name.equals("")) {
+							it_out.println(URLEncoder.encode(msg,"UTF-8"));
+						} 
+						else {
+							it_out.println("["+name+"]"+URLEncoder.encode(msg,"UTF-8"));
+						}
 					}
 				}
 			} catch (Exception e) {
@@ -132,6 +139,7 @@ public class MultiServer extends IConnectImpl {
 		}
 		@Override
 		public void run() {
+
 			String name = "";
 			String s = "";
 			
@@ -144,7 +152,6 @@ public class MultiServer extends IConnectImpl {
 					String name2 = it2.next();
 					if(name2.equals(name)) {
 						out.println("당신은 블랙리스트");
-						name=name+"temp";
 						this.interrupt();
 						return;
 					}
@@ -171,6 +178,9 @@ public class MultiServer extends IConnectImpl {
 					
 					s = in.readLine();
 					s = URLDecoder.decode(s,"UTF-8");
+					if(fixName.equals(name)) {
+						s="/to "+toName+" "+ s;
+					}
 					if(s==null) {
 						break;
 					}
@@ -186,8 +196,54 @@ public class MultiServer extends IConnectImpl {
 							}
 							msgContent += strArr[i]+" ";
 						}
-						if(strArr[0].equals("/to")) {
-							sendAllMsg(name,strArr[1], msgContent, "One");
+						if(strArr[0].equalsIgnoreCase("/list")) {
+							Iterator<String> list = clientMap.keySet().iterator();
+							out.println("=접속자리스트=");
+							int count=1;
+							while(list.hasNext()) {
+								String name2 = list.next();
+								out.println(count++ +"."+name2);
+							}
+						}
+						if(strArr[0].equalsIgnoreCase("/to")) {
+							if(strArr[2].equals("/unfixto")) {
+								fixName = "";
+								toName = "";
+								out.println("고정귓속말 해제");
+							}
+							else {
+								sendAllMsg(name,strArr[1], msgContent, "One");
+							}
+						}
+						if(strArr[0].equalsIgnoreCase("/fixto")) {
+							if(clientMap.containsKey(strArr[1])) {
+								fixName = name;
+								toName = strArr[1];
+								out.println(strArr[1]+"님에게 귓속말 고정");
+							}
+							else {
+								out.println("유효한 사용자가 아닙니다.");
+							}
+						}
+						if(strArr[0].equalsIgnoreCase("/block")) {
+							if(clientMap.containsKey(strArr[1])) {
+								blockName = strArr[1];
+								btoName = name;
+								out.println(strArr[1]+"님의 메세지 차단");
+							}
+							else {
+								out.println("유효한 사용자가 아닙니다.");
+							}
+						}
+						if(strArr[0].equalsIgnoreCase("/unblock")) {
+							if(strArr[1].equals(blockName)) {
+								blockName = "";
+								btoName = "";
+								out.println(strArr[1]+"님 차단 해제");
+							}
+							else {
+								out.println("차단된 사용자가 아닙니다.");
+							}
 						}
 					}
 					else {
