@@ -138,7 +138,9 @@ public class MultiServer extends IConnectImpl {
 						}
 					}
 				}
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				System.out.println("메세지에서"+e);
+			}
 		}
 	}
 	class MultiServerT extends Thread{
@@ -169,9 +171,16 @@ public class MultiServer extends IConnectImpl {
 			}
 			if(s.charAt(0)=='/') {
 				if(strArr[0].equalsIgnoreCase("/roomout")) {
-					entered.remove(name);
-					sendAllMsg("","",name+"님이 퇴장","All",strArr[1]);
-					out.println("채팅방에서 나가셨습니다.");
+					Iterator<RoomList> outroom = roomMap.keySet().iterator();
+					while(outroom.hasNext()) {
+						RoomList a = (RoomList)outroom.next();
+						if(a.roomName.equals(room)){
+							roomMap.replace(a, roomMap.get(a), roomMap.get(a)+1);
+							sendAllMsg("","",name+"님이 퇴장","All",room);
+							out.println("채팅방에서 나가셨습니다.");
+							entered.remove(name);
+						}
+					}
 				}
 				else if(strArr[0].equalsIgnoreCase("/myroomlist")) {
 					Set<String> keys = entered.keySet();
@@ -262,12 +271,13 @@ public class MultiServer extends IConnectImpl {
 					}
 				}
 				//접속자수도 내비두고
-				if(clientMap.size()>2) {
+				if(clientMap.size()>10) {
 					out.println("접속자수초과");
 					this.interrupt();
 					return;
 				}
 				clientMap.put(name, out);
+				out.println("명령어 확인은 /?를 입력하세요");
 				System.out.println(name+" 접속");
 				System.out.println("현재 접속자수"+clientMap.size()+"명");
 				while(in!=null) {
@@ -276,6 +286,11 @@ public class MultiServer extends IConnectImpl {
 					String[] strArr = s.split(" ");
 					if(entered.containsKey(name)) {
 						roomChat(name,s,entered.get(name));
+					}
+					else if(strArr[0].equals("/?")) {
+						out.println("1.채팅방개설 : /makeroom\n"
+								+ "2.채팅방입장 : /roomenter\n"
+								+ "3.채팅방목록 : /chatlist\n");
 					}
 					else if(strArr[0].equalsIgnoreCase("/makeroom")) {
 						//방이름이 중복된 객체는 아닌지 확인해보기
@@ -298,7 +313,7 @@ public class MultiServer extends IConnectImpl {
 							else if(strArr.length<4) {
 								room = new RoomList
 										(strArr[1],Integer.parseInt(strArr[2]));
-								roomMap.put(room, Integer.parseInt(strArr[3])-1);//개설자 바로 들어가짐
+								roomMap.put(room, Integer.parseInt(strArr[2])-1);//개설자 바로 들어가짐
 								entered.put(name, strArr[1]);//개설자 방 입장 map저장
 								sendAllMsg("","",name+"님이 입장","All",strArr[1]);
 							}
@@ -338,13 +353,34 @@ public class MultiServer extends IConnectImpl {
 							out.println("존재하지 않는 방입니다.");
 						}
 					}
+					else if(strArr[0].equalsIgnoreCase("/chatlist")) {
+						Set<RoomList> keys = roomMap.keySet();
+						out.println("=채팅방리스트=");
+						int count=1;
+						for(RoomList key : keys) {
+							int max = key.maxEntered;
+							int member = roomMap.get(key);
+							String roomName = key.roomName;
+							String pass = key.passWord;
+							if(pass==null) {
+								out.println(count++ +"."+"[공 개]"+roomName+"("
+										+member+"/"+max+")");
+							}
+							else {
+								out.println(count++ +"."+"[비공개]"+roomName+"("
+										+member+"/"+max+")");
+								
+							}
+						}
+					}
 				}
 			}
 			catch (NullPointerException e) {
-				
+				System.out.println("널포인터");
 			}
 			catch (Exception e) {
-				System.out.println("예외:"+e);
+				System.out.println("쓰레드에서예외:"+e);
+				e.printStackTrace();
 			}
 			finally {
 				clientMap.remove(name);
