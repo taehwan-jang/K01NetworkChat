@@ -28,10 +28,10 @@ public class Receiver extends Thread{
 				if(a==null) {
 					break;
 				}
-				System.out.println("Thread Receive : "+ URLDecoder.decode(a,"UTF-8"));
+				System.out.println("[서버]"+ URLDecoder.decode(a,"UTF-8"));
 			}
 			catch (SocketException ne) {
-				System.out.println("SocketException 발생됨. 루프탈출");
+				System.out.println("접속을 종료합니다.");
 				break;
 			}	
 			catch (Exception e) {
