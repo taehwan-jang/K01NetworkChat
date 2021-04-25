@@ -1,6 +1,7 @@
 package chat13;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 
 import chat11.jdbc.IConnectImpl;
@@ -27,6 +29,8 @@ public class MultiServer extends IConnectImpl {
 	Map<String, String> entered;
 	Map<String, String> fixto;
 	Map<String, String> block;
+	Map<String, Integer> player;
+	Map<String, char[][]> ticTacToe;
 	Set<String> black;
 	Set<String> pWord;
 	RoomList room;
@@ -40,18 +44,25 @@ public class MultiServer extends IConnectImpl {
 		entered = new HashMap<String, String>();
 		fixto = new HashMap<String, String>();
 		block = new HashMap<String, String>();
+		player = new HashMap<String, Integer>();
+		ticTacToe = new HashMap<String, char[][]>();
 		Collections.synchronizedMap(clientMap);
 		Collections.synchronizedMap(roomMap);
+		Collections.synchronizedMap(roomMaster);
+		Collections.synchronizedMap(inviteRoom);
 		Collections.synchronizedMap(entered);
 		Collections.synchronizedMap(fixto);
 		Collections.synchronizedMap(block);
+		Collections.synchronizedMap(player);
+		Collections.synchronizedMap(ticTacToe);
 		
 		black = new HashSet<String>();
 		black.add("kosmo");
+		black.add("기모찌맨");
 		pWord = new HashSet<String>();
-		pWord.add("개새끼");
-		pWord.add("개새꺄");
-		pWord.add("병신");
+		pWord.add("바보");
+		pWord.add("멍청이");
+		pWord.add("기모찌맨");
 		pWord.add("꺼져");
 	} 
 	public void init() {
@@ -149,7 +160,6 @@ public class MultiServer extends IConnectImpl {
 		}
 	}
 	class MultiServerT extends Thread{
-		
 		Socket socket;
 		PrintWriter out = null;
 		BufferedReader in = null;
@@ -161,6 +171,110 @@ public class MultiServer extends IConnectImpl {
 			} 
 			catch (Exception e) {
 				System.out.println("예외:"+e);
+			}
+		}
+		public void gameStart(String chatroom, String flag) {
+			int x=1;
+			int y=1;
+			int a=1;
+			int b=1;
+			char[][] game = ticTacToe.get(chatroom);
+			int count =0;
+			while(true) {
+				sendAllMsg("","","좌표입력[x(1~3),y(1~3)]","All",chatroom);
+				String pla1;
+				try {
+					pla1 = in.readLine();
+					if(flag.equals("player1")) {
+						x=pla1.charAt(0)-'0';
+						y=pla1.charAt(2)-'0';
+					}
+					else {
+						a=pla1.charAt(0)-'0';
+						b=pla1.charAt(2)-'0';
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				game[x-1][y-1]='O';
+				game[a-1][b-1]='X';
+				count++;
+				for(int i=0 ; i<game.length ; i++) {
+					for(int j =0 ; j<game[i].length ; j++) {
+						sendAllMsg("",""," │ "+game[i][j]+" │ ","All",chatroom);
+					}
+					if(i!=2)
+						sendAllMsg("","","───┼───┼───","All",chatroom);
+				}
+				
+				if(game[0][0]=='O'&&game[1][1]=='O'&&game[2][2]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][2]=='O'&&game[1][1]=='O'&&game[2][0]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][0]=='O'&&game[0][1]=='O'&&game[0][2]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[1][0]=='O'&&game[1][1]=='O'&&game[1][2]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[2][0]=='O'&&game[2][1]=='O'&&game[2][2]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][0]=='O'&&game[1][0]=='O'&&game[2][0]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][1]=='O'&&game[1][1]=='O'&&game[2][1]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][2]=='O'&&game[1][2]=='O'&&game[2][2]=='O') {
+					sendAllMsg("","","player1 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][0]=='X'&&game[1][1]=='X'&&game[2][2]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][2]=='X'&&game[1][1]=='X'&&game[2][0]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][0]=='X'&&game[0][1]=='X'&&game[0][2]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[1][0]=='X'&&game[1][1]=='X'&&game[1][2]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[2][0]=='X'&&game[2][1]=='X'&&game[2][2]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][0]=='X'&&game[1][0]=='X'&&game[2][0]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][1]=='X'&&game[1][1]=='X'&&game[2][1]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(game[0][2]=='X'&&game[1][2]=='X'&&game[2][2]=='X') {
+					sendAllMsg("","","player2 승리","All",chatroom);
+					break;
+				}
+				else if(count==9) {
+					sendAllMsg("","","무승부입니다.","All",chatroom);
+					break;
+				}
 			}
 		}
 		public void masterOut(String mName,String mRoom) {
@@ -194,8 +308,18 @@ public class MultiServer extends IConnectImpl {
 				msgContent += strArr[i]+" ";
 			}
 			try {
-				if(s.charAt(0)=='/') {
-					if(strArr[0].equalsIgnoreCase("/invite")) {
+				if(player.containsKey(name)) {
+					gameStart(chatroom,"player2");
+					player.remove(name);
+				}
+				else if(s.charAt(0)=='/') {
+					if(strArr[0].equalsIgnoreCase("/game")) {
+						ticTacToe.put(chatroom, new char[3][3]);
+						player.put(name,0);
+						player.put(strArr[1],0);
+						gameStart(chatroom,"player1");
+					}
+					else if(strArr[0].equalsIgnoreCase("/invite")) {
 						if(!entered.containsKey(strArr[1])) {
 							Set<RoomList> keys = roomMap.keySet();
 							for(RoomList key : keys) {
@@ -204,6 +328,7 @@ public class MultiServer extends IConnectImpl {
 									if(member>=1) {
 										inviteRoom.put(strArr[1], key);
 										out.println("초대메세지를 보냈습니다.");
+										System.out.println(name+"님 대화초대 ->"+strArr[1]);
 									}
 									else {
 										out.println("채팅방이 꽉찼습니다.");
@@ -229,6 +354,7 @@ public class MultiServer extends IConnectImpl {
 									roomMap.replace(a, roomMap.get(a), roomMap.get(a)+1);
 									sendAllMsg("","",strArr[1]+"님이 퇴장당하셨습니다.","All",chatroom);
 									entered.remove(strArr[1]);
+									System.out.println("["+chatroom+"에서 "+strArr[1]+"님 강제퇴장]");
 								}
 							}
 						}
@@ -251,6 +377,7 @@ public class MultiServer extends IConnectImpl {
 					}
 					else if(strArr[0].equalsIgnoreCase("/myroomlist")) {
 						Set<String> keys = entered.keySet();
+						System.out.println("["+name+"님 접속자리스트 요청");
 						out.println("=접속자리스트=");
 						int count=1;
 						for(String key : keys) {
@@ -261,21 +388,32 @@ public class MultiServer extends IConnectImpl {
 						}
 					}
 					else if(strArr[0].equalsIgnoreCase("/to")) {
+						msgContent="";
+						for(int i=2 ; i<strArr.length;i++) {
+							for(String a : pWord) {
+								if(strArr[i].equals(a)) {
+									strArr[i]="나쁜말";
+								}
+							}
+							msgContent += strArr[i]+" ";
+						}
 						sendAllMsg(name,strArr[1], msgContent, "One",chatroom);
 					}
 					else if(strArr[0].equalsIgnoreCase("/fixto")) {
 						if(entered.containsKey(strArr[1])) {
 							fixto.put(name, strArr[1]);
 							out.println(strArr[1]+"님에게 귓속말 고정");
+							System.out.println("["+name+" 님 "+strArr[1]+" 님에 귓속말 고정]");
 						}
 						else {
 							out.println("유효한 사용자가 아닙니다.");
 						}
-					}
+					} 
 					else if(strArr[0].equalsIgnoreCase("/unfixto")) {
 						if(fixto.get(name).equals(strArr[1])) {
 							fixto.remove(name);
 							out.println("고정귓속말 해제");
+							System.out.println("["+name+" 님 "+strArr[1]+" 님에 귓속말 해제]");
 						}
 						else {
 							out.println("대상이 잘못되었습니다.");
@@ -285,6 +423,7 @@ public class MultiServer extends IConnectImpl {
 						if(entered.containsKey(strArr[1])) {
 							block.put(name,strArr[1]);
 							out.println(strArr[1]+"님의 메세지 차단");
+							System.out.println("["+name+" 님 "+strArr[1]+"님 차단 설정]");
 						}
 						else {
 							out.println("유효한 사용자가 아닙니다.");
@@ -294,6 +433,7 @@ public class MultiServer extends IConnectImpl {
 						if(block.get(name).equalsIgnoreCase(strArr[1])) {
 							block.remove(name);
 							out.println(strArr[1]+"님 차단 해제");
+							System.out.println("["+name+" 님 "+strArr[1]+"님 차단 해제]");
 						}
 						else {
 							out.println("차단된 사용자가 아닙니다.");
@@ -328,7 +468,7 @@ public class MultiServer extends IConnectImpl {
 				//블랙리스트는 내비두고
 				if(black.contains(name)) {
 					out.println("당신은 블랙리스트입니다.");
-					System.out.println("블랙리스트 접속차단:"+name);
+					System.out.println("[블랙리스트 접속차단:"+name+"]");
 					this.interrupt();
 					return;
 				}
@@ -336,7 +476,7 @@ public class MultiServer extends IConnectImpl {
 				if(clientMap.containsKey(name)) {
 					name=name+"temp";
 					out.println("중복된 아이디입니다.");
-					System.out.println("중복아이디 차단:"+name);
+					System.out.println("[중복아이디 차단:"+name+"]");
 					this.interrupt();
 					return;
 				}
@@ -344,21 +484,24 @@ public class MultiServer extends IConnectImpl {
 				//접속자수도 내비두고
 				if(clientMap.size()>10) {
 					out.println("접속자수가 초과되었습니다");
-					System.out.println("초과접속자 차단");
+					System.out.println("[초과접속자 차단]");
 					this.interrupt();
 					return;
 				}
 				clientMap.put(name, out);
 				out.println("명령어 확인은 /?를 입력하세요");
-				System.out.println(name+" 접속");
-				System.out.println("현재 접속자수"+clientMap.size()+"명");
+				System.out.println("["+name+" 접속]");
+				System.out.println("[현재 접속자수"+clientMap.size()+"명]");
 				while(in!=null) {
 					s = in.readLine();
 					s = URLDecoder.decode(s,"UTF-8");
 					String[] strArr = s.split(" ");
 					if(inviteRoom.containsKey(name)) {
+						RoomList a = inviteRoom.get(name);
 						if(strArr[0].equalsIgnoreCase("y")) {
-							entered.put(name, inviteRoom.get(name).roomName);
+							roomMap.replace(a, roomMap.get(a), roomMap.get(a)-1);
+							entered.put(name, a.roomName);
+							sendAllMsg("","",name+"님이 입장하셨습니다.","All",a.roomName);
 							inviteRoom.remove(name);
 						}
 						else if(strArr[0].equalsIgnoreCase("n")) {
@@ -366,12 +509,11 @@ public class MultiServer extends IConnectImpl {
 							inviteRoom.remove(name);
 						}
 						else {
-							out.println(inviteRoom.get(name).roomName+"채팅방에 초대되셨습니다."+
+							out.println(a.roomName+"채팅방에 초대되셨습니다."+
 									"\n수락(Y)/거절(N) 입력:");
-							
 						}
 					}
-					if(entered.containsKey(name)) {
+					else if(entered.containsKey(name)) {
 						roomChat(name,s,entered.get(name));
 					}
 					else if(strArr[0].equals("/?")) {
@@ -390,25 +532,30 @@ public class MultiServer extends IConnectImpl {
 							}
 						}
 						if(!flag2) {
-							if(strArr.length>3) {
+							if(strArr.length==4) {
 								room = new RoomList
 										(strArr[1],strArr[2],Integer.parseInt(strArr[3]));
 								roomMap.put(room, Integer.parseInt(strArr[3])-1);//개설자 바로 들어가짐
 								roomMaster.put(name,room);//키값은 방장이름, 벨류는 방객체
 								entered.put(name, strArr[1]);//개설자 방 입장 map저장
 								sendAllMsg("","",name+"님이 입장","All",strArr[1]);
+								System.out.println(strArr[1]+" 채팅방이 개설되었습니다.");
 							}
-							else if(strArr.length<4) {
+							else if(strArr.length==3) {
 								room = new RoomList
 										(strArr[1],Integer.parseInt(strArr[2]));
 								roomMap.put(room, Integer.parseInt(strArr[2])-1);//개설자 바로 들어가짐
 								roomMaster.put(name,room);//키값은 방장이름, 벨류는 방객체
 								entered.put(name, strArr[1]);//개설자 방 입장 map저장
 								sendAllMsg("","",name+"님이 입장","All",strArr[1]);
+								System.out.println(strArr[1]+" 채팅방이 개설되었습니다.");
+							}
+							else {
+								out.println("/makeroom 방이름 비밀번호(비공개방) 입장인원 을 입력해주세요");
 							}
 						}
 						else {
-							System.out.println("채팅방이 이미 존재합니다.");
+							out.println("채팅방이 이미 존재합니다.");
 						}
 					}
 					else if(strArr[0].equalsIgnoreCase("/roomenter")) {
@@ -422,12 +569,12 @@ public class MultiServer extends IConnectImpl {
 									if(a.passWord.equals("")) {
 										roomMap.replace(a, roomMap.get(a), roomMap.get(a)-1);
 										entered.put(name, strArr[1]);
-										sendAllMsg("","",name+"님이 입장","All",strArr[1]);
+										sendAllMsg("","",name+"님이 입장하셨습니다.","All",strArr[1]);
 									}
 									else if(a.passWord.equalsIgnoreCase(strArr[2])){
 										roomMap.replace(a, roomMap.get(a), roomMap.get(a)-1);
 										entered.put(name, strArr[1]);
-										sendAllMsg("","",name+"님이 입장","All",strArr[1]);
+										sendAllMsg("","",name+"님이 입장하셨습니다.","All",strArr[1]);
 									}
 									else {
 										out.println("패스워드가 틀렸습니다.");
@@ -444,6 +591,7 @@ public class MultiServer extends IConnectImpl {
 					}
 					else if(strArr[0].equalsIgnoreCase("/chatlist")) {
 						Set<RoomList> keys = roomMap.keySet();
+						System.out.println("["+name+"님이 채팅방리스트 요청]");
 						out.println("=채팅방리스트=");
 						int count=1;
 						for(RoomList key : keys) {
@@ -452,25 +600,20 @@ public class MultiServer extends IConnectImpl {
 							String roomName = key.roomName;
 							String pass = key.passWord;
 							if(pass.equals("")) {
-								out.println(count++ +"."+"[공 개]"+roomName+"("
-										+member+"/"+max+")");
+								out.println(count++ +"."+" [공 개] "+roomName+" ("
+										+(max-member)+"/"+max+")");
 							}
 							else {
-								out.println(count++ +"."+"[비공개]"+roomName+"("
-										+member+"/"+max+")");
+								out.println(count++ +"."+" [비공개] "+roomName+" ("
+										+(max-member)+"/"+max+")");
 								
 							}
 						}
 					}
 				}
 			}
-			catch (NullPointerException e) {
-				System.out.println("널포인터");
-			}
-			catch (Exception e) {
-				System.out.println("쓰레드에서예외:"+e);
-				e.printStackTrace();
-			}
+			catch (NullPointerException e) {}
+			catch (Exception e) {}
 			finally {
 				if(roomMaster.containsKey(name)) {
 					masterOut(name,roomMaster.get(name).roomName);
