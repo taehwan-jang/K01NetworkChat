@@ -24,6 +24,10 @@ public class Receiver extends Thread{
 	public void run() {
 		while(in != null) {
 			try {
+//				if(in.readLine()==null) {                  -> in.readLine을
+//					break;									아래와같이 두번 입력하면
+//				}                                         메세지가 정상적으로 수신이 안됨(번갈아가며 수신)
+//				System.out.println("[서버]"+ URLDecoder.decode(in.readLine(),"UTF-8"));
 				String a = in.readLine();
 				if(a==null) {
 					break;

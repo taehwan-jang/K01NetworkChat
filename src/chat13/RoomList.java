@@ -18,8 +18,6 @@ public class RoomList {
 		this.roomName=roomName;
 		this.maxEntered=maxEntered;
 	}
-	//필요한 메소드가 있을까? 여기서 계속 진행하는걸로?
-	//해당 key값을 이용해서 flag 전달? 그거 좋은 방법인거같다
 	
 	
 	

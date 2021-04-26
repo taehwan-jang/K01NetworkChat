@@ -30,7 +30,7 @@ public class Sender extends Thread {
 			out.println(URLEncoder.encode(name,"UTF-8"));
 			
 			//두번째부터는 q를 입력하기 전까지는 입력한 메세지를 서버로 전송한다.
-			while(out != null) {
+			while(out != null) { 
 				try {
 					String s2 = scan.nextLine();
 					if(s2.equalsIgnoreCase("q")) {
@@ -40,13 +40,12 @@ public class Sender extends Thread {
 						out.println(URLEncoder.encode(s2,"UTF-8"));
 					}
 				} catch (Exception e) {
-					System.out.println("예외>Sender>run1:"+e);
+					System.out.println("접속이 종료되었습니다.");
 				}
 			}
 			out.close();
 			socket.close();
-		} catch (Exception e) {
-			System.out.println("예외>Sender>run2:"+e);
-		}
+		} 
+		catch (Exception e) {}
 	}
 }

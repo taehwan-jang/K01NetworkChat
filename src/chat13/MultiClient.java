@@ -3,7 +3,7 @@ package chat13;
 import java.net.Socket;
 import java.util.Scanner;
 
-public class MultiClient {
+public class MultiClient { 
 
 	public static void main(String[] args) {
 		//클라이언트의 대화명을 입력한다.

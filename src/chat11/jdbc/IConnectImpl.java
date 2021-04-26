@@ -25,7 +25,7 @@ public class IConnectImpl implements IConnect {
 	}
 	//인자생성자1
 	public IConnectImpl(String user, String pass) {
-		System.out.println("IConnectImpl 인자생성자 호출");
+//		System.out.println("IConnectImpl 인자생성자 호출");
 		try {
 			Class.forName(ORACLE_DIRVER);
 			connect(user, pass);

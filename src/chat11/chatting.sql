@@ -1,5 +1,6 @@
 create table chat_talking (
     idx number primary key,
+    chatRoom varchar2(30) not null,
     sendN varchar2(20),
     receiveN varchar(20) default 'All',
     contents varchar2(200) not null,
